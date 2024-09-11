@@ -3,6 +3,7 @@ package com.pepej.papi.spring;
 import com.pepej.papi.plugin.PapiJavaPlugin;
 import org.bukkit.plugin.Plugin;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.boot.Banner;
@@ -11,22 +12,26 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.io.ResourceLoader;
 
-public abstract class SpringPlugin extends PapiJavaPlugin implements ApplicationContextInitializer<GenericApplicationContext> {
+public abstract class SpringPapiJavaPlugin extends PapiJavaPlugin implements ApplicationContextInitializer<GenericApplicationContext> {
     private ConfigurableApplicationContext configurableApplicationContext;
 
     protected abstract Class<?> getApplicationClass();
 
-    protected SpringApplicationBuilder builder(SpringApplicationBuilder builder) {
-        return builder;
-    }
+    protected abstract String getPropertySourceFile();
 
     @Override
     public void initialize(GenericApplicationContext applicationContext) {
         registerPluginBean(applicationContext);
+        registerPropertySource(applicationContext);
     }
 
+    private void registerPropertySource(GenericApplicationContext applicationContext) {
+        MutablePropertySources propertySources = applicationContext.getEnvironment().getPropertySources();
+        propertySources.addLast(new SpringPapiConfigurationPropertySource("papi-spring-bukkit", super.loadConfig(getPropertySourceFile())));
+    }
 
     @Override
     public void onPluginEnable() {
@@ -39,10 +44,9 @@ public abstract class SpringPlugin extends PapiJavaPlugin implements Application
                 .logStartupInfo(false)
                 .initializers(this);
 
-        configurableApplicationContext = builder(builder)
+        configurableApplicationContext = builder
                 .run();
     }
-
 
 
     @Override

@@ -1,0 +1,2 @@
+com.pepej.papi.spring.SpringBukkitAutoConfiguration
+com.pepej.papi.spring.listener.BukkitListenerAutoConfiguration
